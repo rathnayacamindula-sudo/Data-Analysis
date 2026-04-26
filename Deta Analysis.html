@@ -1,0 +1,217 @@
+
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KSLand - Final Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class' }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        :root { --primary-color: #3F67F7; --primary-color-light: #EEF2FF; }
+        body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #1E293B; }
+        .dark body { background-color: #0B1120; color: #94A3B8; }
+        .sidebar-item:hover { background-color: #F1F5F9; color: var(--primary-color); }
+        .sidebar-item.active { background-color: var(--primary-color-light); color: var(--primary-color); border-right: 3px solid var(--primary-color); }
+        .dark .sidebar-item:hover { background-color: #1E293B; }
+        .dark .sidebar-item.active { background-color: #1E293B; }
+        .card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; }
+        .dark .card { background: #172032; border-color: #334155; }
+        .status-badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; }
+        .auth-container { display: flex; min-height: 100vh; align-items: center; justify-content: center; background-color: #f1f5f9; }
+        .dark .auth-container { background-color: #020617; }
+        .form-input { width: 100%; border: 1px solid #e2e8f0; background-color: #f8fafc; padding: 10px; border-radius: 8px; }
+        .dark .form-input { background-color: #1e293b; border-color: #334155; }
+        .form-input:focus { outline: none; border-color: var(--primary-color); ring: 1px; ring-color: var(--primary-color); }
+        .settings-panel { transition: transform 0.3s; transform: translateX(100%); }
+        .settings-panel.open { transform: translateX(0); }
+        .live-update { animation: pulse-bg 1s ease-out; }
+        @keyframes pulse-bg { 0% { background-color: rgba(63, 103, 247, 0.1); } 100% { background-color: transparent; } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        .dark ::-webkit-scrollbar-track { background: #1E293B; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+    </style>
+</head>
+<body>
+
+    <!-- AUTHENTICATION PAGE -->
+    <div id="auth-page">
+        <div class="auth-container p-4">
+            <div class="w-full max-w-md mx-auto">
+                <div class="text-center mb-8"><h1 class="text-3xl font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2"><i data-lucide="layout-dashboard" class="text-blue-600" style="color: var(--primary-color);"></i> KSLand</h1><p class="text-slate-500 mt-2">Create an account to continue.</p></div>
+                <div class="card p-8">
+                    <form id="register-form" class="space-y-6">
+                        <div><label for="name" class="text-sm font-medium">Full Name</label><input id="name" name="name" type="text" required class="form-input mt-1"></div>
+                        <div><label for="email" class="text-sm font-medium">Email address</label><input id="email" name="email" type="email" required class="form-input mt-1"></div>
+                        <div><label for="password" class="text-sm font-medium">Password</label><input id="password" name="password" type="password" required class="form-input mt-1"></div>
+                        <div class="flex items-center"><input id="terms" name="terms" type="checkbox" required class="h-4 w-4 rounded"><label for="terms" class="ml-2 block text-xs text-slate-600 dark:text-slate-400">I agree to the <a href="#" id="policy-link" class="font-medium text-blue-600 hover:text-blue-500" style="color:var(--primary-color);">Terms and Privacy Policy</a></label></div>
+                        <div><button type="submit" class="w-full flex justify-center py-2.5 px-4 rounded-md shadow-sm text-sm font-medium text-white bg-blue-600" style="background-color:var(--primary-color);">Create Account</button></div>
+                    </form>
+                    <p class="mt-6 text-center text-xs text-slate-500">Already have an account? <a href="#" class="font-medium text-blue-600" style="color:var(--primary-color);">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD (Initially Hidden) -->
+    <div id="dashboard-app" class="hidden w-full">
+        <div class="flex min-h-screen">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex-shrink-0 fixed lg:sticky top-0 h-screen z-30 lg:z-10 -translate-x-full lg:translate-x-0 transition-transform duration-300">
+                <div class="p-6 border-b border-slate-100 dark:border-slate-800"><h1 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2"><i data-lucide="layout-dashboard" style="color: var(--primary-color);"></i> KSLand</h1></div>
+                <nav class="flex-1 overflow-y-auto p-4 space-y-1">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 px-3 mb-2 tracking-wider">Navigation</p>
+                    <a href="#dashboard" class="sidebar-item active flex items-center px-3 py-2.5 rounded-lg text-sm font-medium"><span class="flex items-center gap-3"><i data-lucide="home" class="w-4 h-4"></i> Dashboards</span></a>
+                    <a href="#reports" class="sidebar-item flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300"><span class="flex items-center gap-3"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Reports</span></a>
+                    <a href="#applications" class="sidebar-item flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300"><span class="flex items-center gap-3"><i data-lucide="layers" class="w-4 h-4"></i> Applications</span></a>
+                    <a href="#proposals" class="sidebar-item flex items-center px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300"><span class="flex items-center gap-3"><i data-lucide="file-text" class="w-4 h-4"></i> Proposals</span></a>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="flex-1 flex flex-col min-h-screen relative">
+                <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-20">
+                    <div class="flex items-center gap-4"><button id="menu-toggle-btn" class="lg:hidden p-2"><i data-lucide="menu" class="w-5 h-5"></i></button><button id="add-new-btn" title="Add New Lead" class="p-1.5 bg-blue-600 text-white rounded-md" style="background-color: var(--primary-color);"><i data-lucide="plus" class="w-4 h-4"></i></button></div>
+                    <div class="flex items-center gap-3 lg:gap-6"><div class="hidden md:flex items-center gap-4 text-slate-500"><button id="search-btn"><i data-lucide="search" class="w-4 h-4"></i></button><button id="fullscreen-btn"><i data-lucide="maximize" class="w-4 h-4"></i></button><button id="dark-mode-toggle"><i data-lucide="moon" class="w-4 h-4"></i></button></div><div class="flex items-center gap-2 pl-4 border-l border-slate-200 dark:border-slate-700"><button id="notifications-btn" class="relative"><i data-lucide="bell" class="w-5 h-5"></i><span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full border-2 border-white dark:border-slate-900">3</span></button><button id="user-menu-btn"><img src="" alt="User" class="w-8 h-8 rounded-full" id="user-avatar-img"></button></div></div>
+                </header>
+
+                <main id="main-content" class="flex-1 p-4 lg:p-8">
+                    <!-- DASHBOARD PAGE -->
+                    <div id="dashboard" class="content-section space-y-6">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4"><div><h2 class="text-xl font-bold">Dashboard</h2></div><button id="filter-btn" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold flex items-center gap-2" style="background-color: var(--primary-color);"><i data-lucide="filter" class="w-3.5 h-3.5"></i> FILTER</button></div>
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="lg:col-span-2 card p-6"><h3 class="font-bold">Visitors Overview</h3><div class="h-[320px] mt-6"><canvas id="visitorsChart"></canvas></div></div><div class="card p-6"><h3 class="font-bold mb-6">Browser States</h3><div class="space-y-5"><div class="space-y-2"><div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><i data-lucide="chrome" class="w-3.5 h-3.5 text-blue-600"></i>Google Chrome</span><span class="font-bold" data-live-value="90">90%</span></div><div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"><div data-live-width="90" class="h-full bg-blue-600 rounded-full" style="width: 90%; background-color: var(--primary-color);"></div></div></div><div class="space-y-2"><div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><i data-lucide="framer" class="w-3.5 h-3.5 text-orange-600"></i>Mozilla Firefox</span><span class="font-bold" data-live-value="76">76%</span></div><div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"><div data-live-width="76" class="h-full bg-orange-600 rounded-full" style="width: 76%;"></div></div></div><div class="space-y-2"><div class="flex items-center justify-between text-xs"><span class="flex items-center gap-2"><i data-lucide="compass" class="w-3.5 h-3.5 text-cyan-500"></i>Apple Safari</span><span class="font-bold" data-live-value="50">50%</span></div><div class="w-full h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full"><div data-live-width="50" class="h-full bg-cyan-500 rounded-full" style="width: 50%;"></div></div></div></div></div></div>
+                        <div class="card overflow-hidden"><div class="p-6 border-b"><h3 class="font-bold">Leads Status</h3></div><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="bg-slate-50 dark:bg-slate-800/50 text-[10px] uppercase"><th class="px-6 py-4">Name</th><th class="px-6 py-4">Status</th><th class="px-6 py-4">Value</th></tr></thead><tbody class="divide-y" id="leads-table-body"><tr data-status="won"><td class="px-6 py-4 font-semibold">Archie Tones</td><td class="px-6 py-4"><span class="status-badge bg-green-50 text-green-600">Deal Won</span></td><td class="px-6 py-4 font-bold" data-lead-value="15650">$15,650</td></tr><tr data-status="intro"><td class="px-6 py-4 font-semibold">Holmes Cherry</td><td class="px-6 py-4"><span class="status-badge bg-orange-50 text-orange-600">Intro Call</span></td><td class="px-6 py-4 font-bold" data-lead-value="10240">$10,240</td></tr><tr data-status="stuck"><td class="px-6 py-4 font-semibold">Kenneth Hune</td><td class="px-6 py-4"><span class="status-badge bg-blue-50 text-blue-600">Stuck</span></td><td class="px-6 py-4 font-bold" data-lead-value="12470">$12,470</td></tr><tr data-status="cancelled"><td class="px-6 py-4 font-semibold">Melanie Hanvey</td><td class="px-6 py-4"><span class="status-badge bg-red-50 text-red-600">Cancelled</span></td><td class="px-6 py-4 font-bold" data-lead-value="10880">$10,880</td></tr></tbody></table></div></div>
+                    </div>
+                    <!-- REPORTS PAGE -->
+                    <div id="reports" class="content-section hidden space-y-6"><h2 class="text-xl font-bold">Reports</h2><div class="card p-6"><h3 class="font-bold mb-4">Quarterly Sales</h3><div class="h-[300px]"><canvas id="reportsChart"></canvas></div></div></div>
+                    <!-- APPLICATIONS PAGE -->
+                    <div id="applications" class="content-section hidden space-y-6"><h2 class="text-xl font-bold">Applications</h2><div class="grid grid-cols-1 md:grid-cols-3 gap-6"><div class="card p-6 flex items-center justify-between"><div class="flex items-center gap-4"><div><i data-lucide="slack"></i></div><div><h4 class="font-bold">Slack</h4></div></div><div class="w-10 h-6 bg-green-500 rounded-full p-1"><div class="w-4 h-4 bg-white rounded-full ml-auto"></div></div></div></div></div>
+                    <!-- PROPOSALS PAGE -->
+                    <div id="proposals" class="content-section hidden space-y-6"><h2 class="text-xl font-bold">Proposals</h2><div class="card overflow-hidden"><table class="w-full text-left"><thead><tr class="bg-slate-50 text-xs"><th class="px-6 py-3">Client</th><th>Value</th><th>Status</th></tr></thead><tbody class="text-sm"><tr><td class="px-6 py-4 font-semibold">Innovate Inc.</td><td class="py-4">$25,000</td><td class="py-4"><span class="status-badge bg-green-100 text-green-700">Signed</span></td></tr></tbody></table></div></div>
+                    
+                    <footer class="pt-8 pb-4 mt-8 text-center border-t text-xs"><p>&copy; 2026 KSLand. All rights reserved.</p></footer>
+                </main>
+            </div>
+        </div>
+    </div>
+    
+    <div id="settings-panel" class="settings-panel fixed top-0 right-0 h-full w-72 bg-white dark:bg-slate-900 shadow-2xl z-50 p-6 border-l"><div class="flex items-center justify-between mb-8"><h3 class="text-lg font-bold">Settings</h3><button id="close-settings-btn"><i data-lucide="x"></i></button></div><div class="space-y-6"><div><label class="text-xs font-bold">Appearance</label><div class="mt-2 flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-1 rounded-lg"><span>Dark Mode</span><button id="settings-dark-mode-toggle" class="relative inline-flex h-6 w-11 items-center rounded-full"><span class="inline-block h-4 w-4 transform rounded-full bg-white transition"></span></button></div></div><div><label class="text-xs font-bold">Theme Color</label><div id="color-picker" class="mt-2 flex gap-2"><button data-color="#3F67F7" class="w-6 h-6 rounded-full bg-[#3F67F7]"></button><button data-color="#F43F5E" class="w-6 h-6 rounded-full bg-[#F43F5E]"></button><button data-color="#16A34A" class="w-6 h-6 rounded-full bg-[#16A34A]"></button></div></div></div></div>
+    <div id="dynamic-container"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const authPage = document.getElementById('auth-page');
+        const dashboardApp = document.getElementById('dashboard-app');
+        const dynamicContainer = document.getElementById('dynamic-container');
+
+        const createModal = (title, content, actions = '') => {
+            const modalHTML = `<div class="modal-overlay fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4"><div class="modal-content bg-white dark:bg-slate-800 rounded-lg w-full max-w-lg"><div class="p-6 border-b flex justify-between"><h3 class="text-lg font-bold">${title}</h3><button data-close>&times;</button></div><div class="p-6 max-h-[60vh] overflow-y-auto">${content}</div>${actions ? `<div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex justify-end gap-3">${actions}</div>` : ''}</div></div>`;
+            dynamicContainer.innerHTML = modalHTML;
+            const modal = dynamicContainer.firstElementChild;
+            const closeModal = () => modal.remove();
+            modal.addEventListener('click', e => { if (e.target === modal || e.target.closest('[data-close]')) closeModal(); });
+            return { modal, closeModal };
+        };
+
+        const checkAuth = () => {
+            const user = localStorage.getItem('ksland_user');
+            if (user) {
+                authPage.style.display = 'none';
+                dashboardApp.style.display = 'block';
+                runDashboard(JSON.parse(user));
+            } else {
+                authPage.style.display = 'block';
+                dashboardApp.style.display = 'none';
+                lucide.createIcons();
+                document.getElementById('policy-link').addEventListener('click', e => { e.preventDefault(); createModal('Privacy Policy', `<p>Your privacy is important to us...</p>`); });
+                document.getElementById('register-form').addEventListener('submit', e => { e.preventDefault(); localStorage.setItem('ksland_user', JSON.stringify({ name: e.target.name.value, email: e.target.email.value })); checkAuth(); });
+            }
+        };
+
+        const runDashboard = (user) => {
+            lucide.createIcons();
+            let activePopover = null;
+            document.getElementById('user-avatar-img').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3F67F7&color=fff`;
+
+            const createPopover = (trigger, content, id) => {
+                // If a popover with the same ID is already open, close it and do nothing else.
+                if (activePopover && activePopover.dataset.id === id) {
+                    activePopover.remove();
+                    activePopover = null;
+                    return;
+                }
+                // If any other popover is open, close it.
+                if (activePopover) {
+                    activePopover.remove();
+                }
+
+                const popover = document.createElement('div');
+                popover.className = 'fixed z-40';
+                popover.dataset.id = id;
+                popover.innerHTML = `<div class="bg-white dark:bg-slate-800 rounded-lg shadow-xl border">${content}</div>`;
+                dynamicContainer.appendChild(popover);
+                activePopover = popover;
+                const r = trigger.getBoundingClientRect();
+                popover.style.top = `${r.bottom + 8}px`;
+                popover.style.right = `${window.innerWidth - r.right}px`;
+                
+                // This will be handled by the main content click listener
+            };
+            
+            // **IMPROVED POPOVER LOGIC START**
+            document.getElementById('main-content').addEventListener('click', () => {
+                if (activePopover) {
+                    activePopover.remove();
+                    activePopover = null;
+                }
+            });
+            // **IMPROVED POPOVER LOGIC END**
+
+            document.getElementById('user-menu-btn').addEventListener('click', e => { 
+                e.stopPropagation(); // Prevent main-content click from firing immediately
+                createPopover(e.currentTarget, `<div class="w-60 p-2"><div class="px-3 py-2 font-semibold">${user.name}</div><div class="my-2 border-t"></div><a href="#" id="open-settings-from-profile" class="flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-slate-100"><i data-lucide="settings" class="w-4 h-4"></i>Settings</a><a href="#" id="logout-btn" class="flex items-center gap-2 px-3 py-2 text-sm rounded-md text-red-500 hover:bg-red-50"><i data-lucide="log-out" class="w-4 h-4"></i>Logout</a></div>`, 'user-menu'); 
+                lucide.createIcons(); 
+            });
+            document.getElementById('notifications-btn').addEventListener('click', e => {
+                e.stopPropagation(); // Prevent main-content click from firing immediately
+                createPopover(e.currentTarget, `<div class="w-80"><div class="p-3 font-bold border-b">Notifications</div><div class="p-4 text-center text-sm">No new notifications.</div></div>`, 'notifications');
+            });
+            
+            dynamicContainer.addEventListener('click', e => { if (e.target.closest('#logout-btn')) { localStorage.removeItem('ksland_user'); window.location.reload(); } if(e.target.closest('#open-settings-from-profile')) document.getElementById('settings-panel').classList.add('open'); });
+
+            // ALL DASHBOARD JS LOGIC
+            const navLinks = document.querySelectorAll('.sidebar-item');
+            navLinks.forEach(link => { link.addEventListener('click', e => { e.preventDefault(); navLinks.forEach(l => l.classList.remove('active')); link.classList.add('active'); const targetId = link.getAttribute('href').substring(1); document.querySelectorAll('.content-section').forEach(s => s.id === targetId ? s.classList.remove('hidden') : s.classList.add('hidden')); if(targetId === 'reports' && !window.reportsChart) window.reportsChart = new Chart('reportsChart', {type:'bar', data: {labels:['Q1','Q2','Q3','Q4'], datasets:[{label:'Sales', data:[50,75,60,80], backgroundColor: 'var(--primary-color)'}]}}); }); });
+            
+            document.getElementById('add-new-btn').addEventListener('click', () => createModal('Create New Lead', `<div class="space-y-4"><div><label class="text-xs">Lead Name</label><input type="text" class="form-input mt-1"></div></div>`, `<button data-close>Cancel</button>`));
+            document.getElementById('filter-btn').addEventListener('click', () => { const { modal } = createModal('Filter Leads', `<select id="f_status" class="w-full p-2 border rounded-md"><option value="all">All</option><option value="won">Won</option><option value="intro">Intro</option><option value="stuck">Stuck</option><option value="cancelled">Cancelled</option></select>`, `<button data-close>Cancel</button><button id="apply-filter" class="px-4 py-2 text-white rounded-md" style="background-color: var(--primary-color)">Apply</button>`); modal.querySelector('#apply-filter').addEventListener('click', () => { const s = modal.querySelector('#f_status').value; document.querySelectorAll('#leads-table-body tr').forEach(r => r.style.display = (s==='all'||r.dataset.status===s)?'':'none'); modal.dispatchEvent(new Event('click')); }); });
+            
+            setInterval(() => { document.querySelectorAll('[data-live-value]').forEach(el => { el.textContent = `${Math.min(100, Math.max(0, parseInt(el.textContent) + Math.floor(Math.random()*3)-1))}%`; el.closest('.space-y-2').querySelector('[data-live-width]').style.width = el.textContent; }); document.querySelectorAll('[data-lead-value]').forEach(el => el.textContent = `$${(parseInt(el.dataset.leadValue) + Math.floor(Math.random()*200)-100).toLocaleString()}`); }, 4000);
+            
+            new Chart('visitorsChart', { type: 'line', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], datasets: [{ label: 'Visitors', data: [30, 45, 35, 60, 50], borderColor: 'var(--primary-color)', fill: true, tension: 0.4 }] } });
+            
+            const settingsPanel = document.getElementById('settings-panel');
+            const html = document.documentElement;
+            const isDark = () => html.classList.contains('dark');
+            const applyDarkMode = (state) => { html.classList.toggle('dark', state); localStorage.setItem('darkMode', state); const t = document.getElementById('settings-dark-mode-toggle'); t.querySelector('span').style.transform = state ? 'translateX(1.25rem)' : 'translateX(0)'; t.style.backgroundColor = state ? 'var(--primary-color)' : '#9ca3af'; };
+            if (localStorage.getItem('darkMode') === 'true') applyDarkMode(true);
+            document.getElementById('dark-mode-toggle').addEventListener('click', () => applyDarkMode(!isDark()));
+            document.getElementById('settings-dark-mode-toggle').addEventListener('click', () => applyDarkMode(!isDark()));
+            document.getElementById('close-settings-btn').addEventListener('click', () => settingsPanel.classList.remove('open'));
+            
+            document.getElementById('fullscreen-btn').addEventListener('click', () => !document.fullscreenElement ? html.requestFullscreen() : document.exitFullscreen());
+            document.getElementById('menu-toggle-btn').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('-translate-x-full'));
+        };
+
+        checkAuth();
+    });
+    </script>
+</body>
+</html>
